@@ -1,9 +1,9 @@
 /**
  * background/service-worker.js
- * The only place that touches secrets (GitHub PAT, Anthropic key). Content
+ * The only place that touches secrets (GitHub PAT, Groq key). Content
  * scripts and the panel/popup UI talk to this worker exclusively via
  * chrome.runtime.sendMessage — they never call api.github.com or
- * api.anthropic.com directly.
+ * api.groq.com directly.
  */
 
 import {
@@ -11,9 +11,10 @@ import {
   getLatestCommitForPath,
   parseRepoFromUrl,
   parseLineRangeFromHash,
+  searchCode,
   GitHubRateLimitError
 } from "../lib/github-api.js";
-import { explainSnippet, summarizeLargeSnippet, getComplexityOpinion } from "../lib/claude-api.js";
+import { explainSnippet, summarizeLargeSnippet, getComplexityOpinion } from "../lib/groq-api.js";
 import {
   getSettings,
   setSettings,
@@ -95,6 +96,9 @@ async function handleMessage(message, sender) {
     case "CC_GET_COMPLEXITY_OPINION":
       return getComplexityOpinionFlow(message.payload);
 
+    case "CC_SEARCH_CODE":
+      return searchCodeFlow(message.payload);
+
     default:
       throw new Error(`Unknown message type: ${message.type}`);
   }
@@ -104,10 +108,10 @@ async function handleMessage(message, sender) {
 
 async function explainSnippetFlow(payload) {
   const { code, filePath, url, language, wantSummary } = payload;
-  const { githubToken, anthropicKey } = await getSettings();
+  const { githubToken, groqApiKey } = await getSettings();
 
-  if (!anthropicKey) {
-    throw new Error("Add your Anthropic API key in the extension settings (popup) first.");
+  if (!groqApiKey) {
+    throw new Error("Add your free Groq API key in the extension settings (popup) first.");
   }
 
   const lineCount = code.split("\n").length;
@@ -144,8 +148,8 @@ async function explainSnippetFlow(payload) {
 
   const result =
     tooLarge && wantSummary !== false
-      ? await summarizeLargeSnippet({ apiKey: anthropicKey, code, filePath, language })
-      : await explainSnippet({ apiKey: anthropicKey, code, filePath, language, surroundingContext });
+      ? await summarizeLargeSnippet({ apiKey: groqApiKey, code, filePath, language })
+      : await explainSnippet({ apiKey: groqApiKey, code, filePath, language, surroundingContext });
 
   return { explanation: result, truncated: tooLarge, lineCount };
 }
@@ -184,14 +188,58 @@ async function getFileComplexityFlow(payload) {
 
 async function getComplexityOpinionFlow(payload) {
   const { owner, repo, path, ref, heuristicScore } = payload;
-  const { githubToken, anthropicKey } = await getSettings();
-  if (!anthropicKey) {
-    throw new Error("Add your Anthropic API key in the extension settings first.");
+  const { githubToken, groqApiKey } = await getSettings();
+  if (!groqApiKey) {
+    throw new Error("Add your free Groq API key in the extension settings first.");
   }
   const { content } = await getFileContent({ owner, repo, path, ref, token: githubToken });
   // Cap what we send for cost/latency; a few hundred lines is plenty for an opinion.
   const truncated = content.slice(0, 8000);
-  return getComplexityOpinion({ apiKey: anthropicKey, filePath: path, code: truncated, heuristicScore });
+  return getComplexityOpinion({ apiKey: groqApiKey, filePath: path, code: truncated, heuristicScore });
+}
+
+// ---------- Feature 4: Find code by filename + line number ----------
+// Free — no LLM call. Uses GitHub's own code-search endpoint to find which
+// files in a repo contain a query, then fetches each match's content once
+// to resolve an exact line number (search results only give byte offsets
+// into a short fragment, not real line numbers).
+
+async function searchCodeFlow(payload) {
+  const { owner, repo, query, ref } = payload;
+  const { githubToken } = await getSettings();
+
+  const hits = await searchCode({ owner, repo, query, token: githubToken, perPage: 10 });
+
+  const resolved = [];
+  for (const hit of hits) {
+    try {
+      const { content } = await getFileContent({
+        owner,
+        repo,
+        path: hit.path,
+        ref,
+        token: githubToken
+      });
+      const lines = content.split("\n");
+      const idx = lines.findIndex((line) => line.toLowerCase().includes(query.toLowerCase()));
+      const lineNumber = idx === -1 ? null : idx + 1;
+      resolved.push({
+        path: hit.path,
+        lineNumber,
+        snippet: idx === -1 ? "" : lines[idx].trim().slice(0, 200),
+        url:
+          lineNumber != null
+            ? `https://github.com/${owner}/${repo}/blob/${ref || "HEAD"}/${hit.path}#L${lineNumber}`
+            : `https://github.com/${owner}/${repo}/blob/${ref || "HEAD"}/${hit.path}`
+      });
+    } catch (e) {
+      // A single file failing to fetch (e.g. removed since indexing,
+      // binary, huge) shouldn't sink the whole search — skip it.
+      console.warn("[code-companion] could not resolve line number for", hit.path, e.message);
+    }
+  }
+
+  return { results: resolved };
 }
 
 export { parseLineRangeFromHash };
