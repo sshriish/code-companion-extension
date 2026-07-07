@@ -1,0 +1,298 @@
+/**
+ * panel/panel.css
+ * Hand-rolled CSS variables approximating GitHub's Primer design tokens, so
+ * the injected panel + heatmap don't look bolted on. Loaded as a content
+ * script CSS file on both blob and tree pages.
+ */
+
+#code-companion-panel {
+  --cc-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial,
+    sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+  --cc-radius: 6px;
+  --cc-space-1: 4px;
+  --cc-space-2: 8px;
+  --cc-space-3: 16px;
+  --cc-space-4: 24px;
+
+  /* Light theme (default) */
+  --cc-bg: #ffffff;
+  --cc-bg-subtle: #f6f8fa;
+  --cc-border: #d0d7de;
+  --cc-fg: #1f2328;
+  --cc-fg-muted: #656d76;
+  --cc-accent: #0969da;
+  --cc-accent-fg: #ffffff;
+  --cc-danger: #cf222e;
+  --cc-danger-bg: #ffebe9;
+  --cc-warning-bg: #fff8c5;
+  --cc-shadow: 0 8px 24px rgba(140, 149, 159, 0.2);
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  width: 380px;
+  background: var(--cc-bg);
+  border-left: 1px solid var(--cc-border);
+  box-shadow: var(--cc-shadow);
+  font-family: var(--cc-font);
+  color: var(--cc-fg);
+  font-size: 14px;
+  line-height: 1.5;
+  z-index: 2147483000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 200ms ease;
+}
+
+#code-companion-panel[data-theme="dark"] {
+  --cc-bg: #0d1117;
+  --cc-bg-subtle: #161b22;
+  --cc-border: #30363d;
+  --cc-fg: #e6edf3;
+  --cc-fg-muted: #8d96a0;
+  --cc-accent: #2f81f7;
+  --cc-accent-fg: #ffffff;
+  --cc-danger: #f85149;
+  --cc-danger-bg: #490202;
+  --cc-warning-bg: #3b2b00;
+  --cc-shadow: 0 8px 24px rgba(1, 4, 9, 0.6);
+}
+
+.cc-panel--hidden {
+  display: none;
+}
+
+.cc-panel--open {
+  transform: translateX(0);
+}
+
+.cc-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--cc-space-3);
+  border-bottom: 1px solid var(--cc-border);
+}
+
+.cc-panel__title {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-space-2);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.cc-panel__close {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--cc-fg-muted);
+  padding: var(--cc-space-1) var(--cc-space-2);
+  border-radius: var(--cc-radius);
+}
+
+.cc-panel__close:hover {
+  background: var(--cc-bg-subtle);
+  color: var(--cc-fg);
+}
+
+.cc-panel__meta {
+  padding: var(--cc-space-2) var(--cc-space-3);
+  background: var(--cc-bg-subtle);
+  border-bottom: 1px solid var(--cc-border);
+  font-size: 12px;
+  color: var(--cc-fg-muted);
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--cc-space-2);
+}
+
+.cc-panel__file {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--cc-space-3);
+}
+
+.cc-panel__footer {
+  display: flex;
+  gap: var(--cc-space-2);
+  padding: var(--cc-space-3);
+  border-top: 1px solid var(--cc-border);
+}
+
+.cc-btn {
+  font-family: var(--cc-font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 12px;
+  border-radius: var(--cc-radius);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-bg-subtle);
+  color: var(--cc-fg);
+  cursor: pointer;
+}
+
+.cc-btn:hover {
+  background: var(--cc-border);
+}
+
+.cc-btn--primary {
+  background: var(--cc-accent);
+  color: var(--cc-accent-fg);
+  border-color: var(--cc-accent);
+}
+
+.cc-btn--primary:hover {
+  filter: brightness(1.08);
+}
+
+.cc-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cc-section {
+  margin-bottom: var(--cc-space-4);
+}
+
+.cc-section h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--cc-fg-muted);
+  margin: 0 0 var(--cc-space-2) 0;
+}
+
+.cc-section--fragile {
+  background: var(--cc-warning-bg);
+  padding: var(--cc-space-2) var(--cc-space-3);
+  border-radius: var(--cc-radius);
+}
+
+.cc-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.cc-list li {
+  margin-bottom: var(--cc-space-1);
+}
+
+.cc-complexity {
+  display: flex;
+  gap: var(--cc-space-2);
+  margin-bottom: var(--cc-space-1);
+}
+
+.cc-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  background: var(--cc-bg-subtle);
+  border: 1px solid var(--cc-border);
+}
+
+.cc-panel__justification {
+  color: var(--cc-fg-muted);
+  font-size: 13px;
+}
+
+.cc-panel__warning {
+  background: var(--cc-warning-bg);
+  padding: var(--cc-space-2) var(--cc-space-3);
+  border-radius: var(--cc-radius);
+  margin-bottom: var(--cc-space-3);
+  font-size: 13px;
+}
+
+.cc-panel__error {
+  background: var(--cc-danger-bg);
+  color: var(--cc-danger);
+  padding: var(--cc-space-3);
+  border-radius: var(--cc-radius);
+}
+
+.cc-skeleton {
+  height: 14px;
+  border-radius: var(--cc-radius);
+  background: linear-gradient(
+    90deg,
+    var(--cc-bg-subtle) 25%,
+    var(--cc-border) 37%,
+    var(--cc-bg-subtle) 63%
+  );
+  background-size: 400% 100%;
+  animation: cc-shimmer 1.4s ease infinite;
+  margin-bottom: var(--cc-space-2);
+}
+
+.cc-skeleton--short {
+  width: 60%;
+}
+
+@keyframes cc-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+.cc-panel__loading-text {
+  color: var(--cc-fg-muted);
+  font-size: 13px;
+  margin-top: var(--cc-space-2);
+}
+
+/* ---------------- Tree-view heatmap ---------------- */
+
+.cc-heatmap-legend {
+  font-family: var(--cc-font, -apple-system, sans-serif);
+  font-size: 12px;
+  color: #656d76;
+  padding: 6px 16px;
+  border-bottom: 1px solid #d0d7de;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+html[data-code-companion-theme="dark"] .cc-heatmap-legend {
+  color: #8d96a0;
+  border-color: #30363d;
+}
+
+.cc-heatmap-row {
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.cc-heatmap-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  padding: 0 6px;
+  border-radius: 999px;
+  margin-left: 6px;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  vertical-align: middle;
+  cursor: help;
+}
+
+.cc-heatmap-pending {
+  font-size: 11px;
+  color: #8d96a0;
+  font-style: italic;
+  margin-left: 6px;
+}

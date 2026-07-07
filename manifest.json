@@ -1,0 +1,49 @@
+{
+  "manifest_version": 3,
+  "name": "Code Companion",
+  "version": "0.1.0",
+  "description": "Explain code, spot complexity hotspots, and build a learning journal — right inside GitHub.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["contextMenus", "storage", "activeTab", "scripting"],
+  "host_permissions": [
+    "https://github.com/*",
+    "https://api.github.com/*",
+    "https://api.anthropic.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*/*/blob/*"],
+      "js": ["content-scripts/github-theme-detect.js", "content-scripts/file-view.js"],
+      "css": ["panel/panel.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://github.com/*/*/tree/*", "https://github.com/*/*"],
+      "js": ["content-scripts/github-theme-detect.js", "content-scripts/tree-view.js"],
+      "css": ["panel/panel.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["panel/panel.html", "panel/panel.css"],
+      "matches": ["https://github.com/*"]
+    }
+  ]
+}

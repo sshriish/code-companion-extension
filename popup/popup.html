@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Code Companion</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="pp-header">
+        <div class="pp-title">✨ Code Companion</div>
+        <nav class="pp-tabs">
+          <button class="pp-tab pp-tab--active" data-tab="history">History</button>
+          <button class="pp-tab" data-tab="settings">Settings</button>
+        </nav>
+      </header>
+
+      <section id="tab-history" class="pp-tab-panel pp-tab-panel--active">
+        <div class="pp-stat" id="pp-stat"></div>
+        <div class="pp-search">
+          <input id="pp-search-input" type="text" placeholder="Search by repo, file, or keyword…" />
+        </div>
+        <div id="pp-history-list" class="pp-history-list"></div>
+        <div class="pp-history-footer">
+          <button id="pp-clear-all" class="pp-btn pp-btn--danger">Clear all history</button>
+        </div>
+      </section>
+
+      <section id="tab-settings" class="pp-tab-panel">
+        <form id="pp-settings-form">
+          <label class="pp-field">
+            <span>GitHub Personal Access Token</span>
+            <input type="password" id="pp-github-token" placeholder="ghp_…" autocomplete="off" />
+            <small>Needs <code>repo</code> scope for private repos. Stored locally, never synced.</small>
+          </label>
+          <label class="pp-field">
+            <span>Anthropic API Key</span>
+            <input type="password" id="pp-anthropic-key" placeholder="sk-ant-…" autocomplete="off" />
+            <small>Used only for "Explain This" and complexity opinions.</small>
+          </label>
+          <button type="submit" class="pp-btn pp-btn--primary">Save settings</button>
+          <span id="pp-save-status" class="pp-save-status"></span>
+        </form>
+      </section>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+<!--
+  panel/panel.html
+
+  Reference-only template. In production the panel is injected directly
+  into the GitHub page's DOM by content-scripts/file-view.js (see
+  ensurePanelRoot/renderSkeleton/renderExplanation) so it inherits GitHub's
+  live theme attribute without an iframe boundary getting in the way.
+
+  This file exists so panel.css has a plain page to preview against during
+  development (open it directly in a browser) and because it's listed
+  under web_accessible_resources in manifest.json. It mirrors the exact
+  class names used by the injected markup — if you change one, change both.
+-->
+<html data-code-companion-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>Code Companion — panel preview</title>
+    <link rel="stylesheet" href="panel.css" />
+    <style>
+      /* Preview-page-only styles, not shipped with the panel itself. */
+      body {
+        margin: 0;
+        font-family: -apple-system, "Segoe UI", sans-serif;
+        background: #f6f8fa;
+      }
+      .preview-note {
+        max-width: 600px;
+        margin: 40px auto;
+        padding: 16px;
+        color: #656d76;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="preview-note">
+      This is a static preview of the "Explain This" panel markup for
+      development purposes. On github.com the real panel is injected and
+      populated by <code>content-scripts/file-view.js</code>.
+    </div>
+
+    <div id="code-companion-panel" class="cc-panel cc-panel--open" data-theme="light">
+      <div class="cc-panel__header">
+        <div class="cc-panel__title">
+          <span class="cc-panel__logo">✨</span>
+          <span>Code Companion</span>
+        </div>
+        <button class="cc-panel__close" aria-label="Close">×</button>
+      </div>
+      <div class="cc-panel__meta">
+        <div class="cc-panel__file">src/utils/parser.js</div>
+        <div class="cc-panel__lines">L45-L52</div>
+      </div>
+      <div class="cc-panel__body">
+        <section class="cc-section">
+          <h3>Explanation</h3>
+          <p>This function walks the token list once, pushing onto a stack
+          whenever it sees an opening bracket and popping to check for a
+          match on a closing one.</p>
+        </section>
+        <section class="cc-section">
+          <h3>Complexity</h3>
+          <div class="cc-complexity">
+            <span class="cc-badge cc-badge--time">Time: O(n)</span>
+            <span class="cc-badge cc-badge--space">Space: O(n)</span>
+          </div>
+          <p class="cc-panel__justification">Single pass over the input; the stack can hold up to n tokens.</p>
+        </section>
+        <section class="cc-section">
+          <h3>Likely interview questions</h3>
+          <ul class="cc-list">
+            <li>How would you validate multiple bracket types at once?</li>
+            <li>How would you do this with O(1) extra space?</li>
+          </ul>
+        </section>
+      </div>
+      <div class="cc-panel__footer">
+        <button class="cc-btn cc-btn--primary">Save to history</button>
+        <button class="cc-btn">Copy explanation</button>
+      </div>
+    </div>
+  </body>
+</html>
