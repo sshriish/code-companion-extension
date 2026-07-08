@@ -32,6 +32,12 @@
       "run_at": "document_idle"
     }
   ],
+  {
+      "matches": ["https://github.com/*/*/commit/*"],
+      "js": ["content-scripts/github-theme-detect.js", "content-scripts/commit-view.js"],
+      "css": ["panel/panel.css"],
+      "run_at": "document_idle"
+    },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
