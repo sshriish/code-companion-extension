@@ -311,12 +311,14 @@ async function setupSearchTab() {
 function renderSearchResult(result) {
   const item = el("div", "pp-item");
   const summary = el("div", "pp-item__summary");
+  const lineLabel =
+    result.lineNumber && result.endLineNumber && result.endLineNumber !== result.lineNumber
+      ? `L${result.lineNumber}-L${result.endLineNumber}`
+      : result.lineNumber
+      ? `L${result.lineNumber}`
+      : null;
   summary.append(
-    el(
-      "span",
-      "pp-item__path",
-      result.lineNumber ? `${result.path} (L${result.lineNumber})` : result.path
-    )
+    el("span", "pp-item__path", lineLabel ? `${result.path} (${lineLabel})` : result.path)
   );
   const preview = el("div", "pp-item__preview", result.snippet || "(match found, exact line not shown)");
   const actions = el("div", "pp-item__actions");
