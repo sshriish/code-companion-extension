@@ -296,3 +296,35 @@ html[data-code-companion-theme="dark"] .cc-heatmap-legend {
   font-style: italic;
   margin-left: 6px;
 }
+/* ---------------- Commit-view floating button ---------------- */
+
+.cc-commit-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483000;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #0969da;
+  background: #0969da;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(140, 149, 159, 0.35);
+}
+
+.cc-commit-fab:hover {
+  filter: brightness(1.08);
+}
+
+.cc-commit-fab:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+html[data-code-companion-theme="dark"] .cc-commit-fab {
+  border-color: #2f81f7;
+  background: #2f81f7;
+}
