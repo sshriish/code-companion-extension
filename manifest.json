@@ -12,7 +12,7 @@
   "host_permissions": [
     "https://github.com/*",
     "https://api.github.com/*",
-    "https://api.anthropic.com/*"
+    "https://api.groq.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js",
