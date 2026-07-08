@@ -14,7 +14,7 @@ import {
   searchCode,
   GitHubRateLimitError
 } from "../lib/github-api.js";
-import { explainSnippet, summarizeLargeSnippet, getComplexityOpinion } from "../lib/groq-api.js";
+import { explainSnippet, summarizeLargeSnippet, getComplexityOpinion ,explainCommit} from "../lib/groq-api.js";
 import {
   getSettings,
   setSettings,
@@ -138,6 +138,9 @@ async function handleMessage(message, sender) {
     case "CC_SEARCH_CODE":
       return searchCodeFlow(message.payload);
 
+     case "CC_EXPLAIN_COMMIT":
+      return explainCommitFlow(message.payload);
+
     default:
       throw new Error(`Unknown message type: ${message.type}`);
   }
@@ -191,6 +194,33 @@ async function explainSnippetFlow(payload) {
       : await explainSnippet({ apiKey: groqApiKey, code, filePath, language, surroundingContext });
 
   return { explanation: result, truncated: tooLarge, lineCount };
+}
+
+// ---------- Feature 5: Explain a commit ----------
+
+const COMMIT_DIFF_CHAR_LIMIT = 12000;
+
+async function explainCommitFlow(payload) {
+  const { owner, repo, sha, commitMessage, url } = payload;
+  const { githubToken, groqApiKey } = await getSettings();
+
+  if (!groqApiKey) {
+    throw new Error("Add your free Groq API key in the extension settings (popup) first.");
+  }
+
+  const fullDiff = await getCommitDiff({ owner, repo, sha, token: githubToken });
+  const filesChanged = (fullDiff.match(/^diff --git/gm) || []).length;
+  const truncated = fullDiff.length > COMMIT_DIFF_CHAR_LIMIT;
+  const diff = fullDiff.slice(0, COMMIT_DIFF_CHAR_LIMIT);
+
+  const explanation = await explainCommit({
+    apiKey: groqApiKey,
+    commitMessage: commitMessage || "(no message provided)",
+    diff,
+    repo: `${owner}/${repo}`
+  });
+
+  return { explanation, filesChanged, truncated };
 }
 
 // ---------- Feature 2: Complexity heatmap ----------
