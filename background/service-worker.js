@@ -40,14 +40,53 @@ chrome.runtime.onInstalled.addListener(() => {
     documentUrlPatterns: ["*://github.com/*/*/blob/*"]
   });
 });
-
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== MENU_ID || !tab?.id) return;
-  chrome.tabs.sendMessage(tab.id, {
+
+  const message = {
     type: "CC_OPEN_PANEL_FOR_SELECTION",
     selectionText: info.selectionText || ""
-  });
+  };
+
+  // GitHub is a Turbo/pjax-driven SPA: moving between pages (e.g. clicking
+  // a file, jumping to a different blob) is usually a client-side
+  // navigation, not a full page load. Our content script only
+  // auto-injects on real page loads (see manifest.json), so it may not
+  // actually be present on the page the user is looking at right now.
+  // Try messaging it first; if nothing answers, inject it on demand
+  // (activeTab + scripting permissions already cover this) and retry.
+  const first = await sendToTab(tab.id, message);
+  if (first.delivered) return;
+
+  await ensureContentScriptInjected(tab.id);
+  await sendToTab(tab.id, message);
 });
+
+function sendToTab(tabId, message) {
+  return new Promise((resolve) => {
+    chrome.tabs.sendMessage(tabId, message, () => {
+      // Accessing lastError (even just reading it) is required to mark it
+      // "handled" and avoid an unchecked-error console warning.
+      resolve({ delivered: !chrome.runtime.lastError });
+    });
+  });
+}
+
+async function ensureContentScriptInjected(tabId) {
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      files: ["content-scripts/github-theme-detect.js", "content-scripts/file-view.js"]
+    });
+    await chrome.scripting.insertCSS({
+      target: { tabId },
+      files: ["panel/panel.css"]
+    });
+  } catch (e) {
+    console.warn("[code-companion] could not inject content script:", e.message);
+  }
+}
+
 
 // ---------- Message router ----------
 
